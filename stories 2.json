@@ -1,0 +1,110 @@
+[
+  {
+    "name": "resignation",
+    "title": "你的離職申請，已被未來的你駁回",
+    "lines": [
+      {
+        "text": "我不幹了！今天誰都別想攔我！",
+        "speaker": "male"
+      },
+      {
+        "text": "離職申請審核中。正在聯繫您的未來主管。",
+        "speaker": "male"
+      },
+      {
+        "text": "未來主管？我明天就不來了耶！",
+        "speaker": "male"
+      },
+      {
+        "text": "你終於要離職了？",
+        "speaker": "male"
+      },
+      {
+        "text": "靠！你怎麼長得跟我一樣？",
+        "speaker": "male"
+      },
+      {
+        "text": "我是十年後的你，人資派我來談。",
+        "speaker": "male"
+      },
+      {
+        "text": "太好了！你一定知道怎麼逃出去！",
+        "speaker": "male"
+      },
+      {
+        "text": "知道啊。我已經逃過九次了。",
+        "speaker": "male"
+      },
+      {
+        "text": "那你怎麼還在這裡？",
+        "speaker": "male"
+      },
+      {
+        "text": "因為每次離職，公司都升我當主管。",
+        "speaker": "male"
+      },
+      {
+        "text": "恭喜！您已升任離職審核部經理。",
+        "speaker": "male"
+      },
+      {
+        "text": "那我現在可以走了嗎？可以。先把自己的離職單駁回。",
+        "speaker": "male"
+      }
+    ]
+  },
+  {
+    "name": "bonus",
+    "title": "公司買了我的人生使用權",
+    "lines": [
+      {
+        "text": "一百萬年終？！公司終於做人了！",
+        "speaker": "male"
+      },
+      {
+        "text": "獎金已入帳，請確認合約。",
+        "speaker": "male"
+      },
+      {
+        "text": "恭喜你！簽個名就好。",
+        "speaker": "female"
+      },
+      {
+        "text": "等等，人生使用權轉讓是什麼？",
+        "speaker": "male"
+      },
+      {
+        "text": "就是你的下班時間，現在歸公司所有。",
+        "speaker": "female"
+      },
+      {
+        "text": "那我的週末呢？",
+        "speaker": "male"
+      },
+      {
+        "text": "也包含在福利方案裡喔。",
+        "speaker": "female"
+      },
+      {
+        "text": "那我睡覺總可以吧？",
+        "speaker": "male"
+      },
+      {
+        "text": "當然！公司還提供夢境加班津貼。",
+        "speaker": "female"
+      },
+      {
+        "text": "所以我連做夢都要上班？！",
+        "speaker": "male"
+      },
+      {
+        "text": "不用擔心，我們已經幫你安排退休了。",
+        "speaker": "female"
+      },
+      {
+        "text": "真的？幾歲？上輩子。",
+        "speaker": "male"
+      }
+    ]
+  }
+]
