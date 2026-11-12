@@ -1,34 +1,108 @@
-
-name: AI Film Factory
+name: Daily AI Film Factory
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'check = 免費檢查 / demo = 技術測試 / produce = 正式製片'
+        type: choice
+        options: [check, demo, produce]
+        default: check
+      topic:
+        description: '可留空，每次自動創作全新故事'
+        type: string
+        required: false
+  schedule:
+    # 08:00 Asia/Taipei. GitHub schedules can be delayed.
+    - cron: '0 0 * * *'
 
 permissions:
   contents: read
 
+concurrency:
+  group: film-factory-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  make-film:
+  validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install FFmpeg
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install runtime
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
-
-      - name: Generate MP4
-        run: python main.py
-
-      - name: Upload finished video
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+          python -m pip install -r requirements.txt
+      - name: Test budget, schema, retries and audio handling
+        run: python -m unittest discover -s tests -v
+      - name: Render a complete 60-second technical test
+        run: python main.py demo --output output/technical-test
+      - name: Check production configuration without paid calls
+        if: github.event_name != 'pull_request'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RUNWAYML_API_SECRET: ${{ secrets.RUNWAYML_API_SECRET }}
+          ALLOCATED_COST_TWD: ${{ vars.ALLOCATED_COST_TWD || '1' }}
+        run: python main.py check --network --output output/setup
+      - name: Save checks and clearly labeled test video
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ai-film-factory-video
-          path: output/*.mp4
+          name: technical-check-${{ github.run_number }}
+          path: |
+            output/setup/*.json
+            output/technical-test/film.mp4
+            output/technical-test/render-report.json
           if-no-files-found: error
           retention-days: 7
-  
+
+  produce:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'produce'))
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+          python -m pip install -r requirements.txt
+      - name: Create new screenplay and render the daily film
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RUNWAYML_API_SECRET: ${{ secrets.RUNWAYML_API_SECRET }}
+          GITHUB_TOKEN: ${{ github.token }}
+          FILM_TOPIC: ${{ inputs.topic }}
+          ALLOCATED_COST_TWD: ${{ vars.ALLOCATED_COST_TWD || '1' }}
+        run: python main.py produce --github-state
+      - name: Save film, screenplay, subtitles, costs and failure details
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-film-${{ github.run_number }}
+          path: |
+            output/*/film.mp4
+            output/*/film_clean.mp4
+            output/*/script.json
+            output/*/subtitles.srt
+            output/*/subtitles.ass
+            output/*/*report.json
+            output/*/budget.json
+            output/*/failure.json
+          if-no-files-found: error
+          retention-days: 30
