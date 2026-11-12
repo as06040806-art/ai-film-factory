@@ -1,0 +1,29 @@
+{
+  "title": "加班可以折抵壽命",
+  "premise": "員工以為加班能換休假，卻發現公司把生命算進工時。",
+  "ending": "人資宣布連投胎前等待的時間都算待命。",
+  "setting": "深夜辦公室，員工與人資站在打卡機旁。",
+  "characters": [
+    {"name": "阿哲", "voice": "male", "description": "Taiwanese man age 28, short black hair, white shirt, loose navy tie, tired eyes."},
+    {"name": "人資", "voice": "female", "description": "Taiwanese woman age 35, black bob hair, beige blazer, calm professional expression."}
+  ],
+  "scenes": [
+    "Midnight office entrance, both coworkers by the time clock, cool fluorescent lights, cinematic medium shot.",
+    "Same coworkers and clothes beside a desk covered in timesheets, dramatic side lighting, close reaction framing.",
+    "Same office exit, the employee holds a blank paper while the HR officer blocks the door, dry comedic tension."
+  ],
+  "shots": [
+    {"speaker": "阿哲", "text": "加班一百小時，終於可以換休假了！", "scene": 0, "visual_prompt": "The tired man smiles at the time clock, hopeful close-up."},
+    {"speaker": "人資", "text": "可以，我們現在都用壽命來結算。", "scene": 0, "visual_prompt": "Close-up of the blank timesheet and HR hand."},
+    {"speaker": "阿哲", "text": "所以我多加班，就能活得久一點？", "scene": 0, "visual_prompt": "Over-the-shoulder reaction, the man turns toward HR."},
+    {"speaker": "人資", "text": "是你的剩餘壽命，可以折抵加班。", "scene": 1, "visual_prompt": "HR calmly taps a calculator, face not speaking on screen."},
+    {"speaker": "阿哲", "text": "等等，我不是來公司延長工時的！", "scene": 1, "visual_prompt": "The man's hand freezes above a stack of papers."},
+    {"speaker": "人資", "text": "放心，公司也有完整的退休制度。", "scene": 1, "visual_prompt": "HR points toward a closed office door."},
+    {"speaker": "阿哲", "text": "太好了，那我到底什麼時候能退休？", "scene": 1, "visual_prompt": "Close-up of the man, relief gives way to suspicion."},
+    {"speaker": "人資", "text": "等你的壽命加班額度全部用完。", "scene": 1, "visual_prompt": "Close-up of a clock, its hands cast a long shadow."},
+    {"speaker": "阿哲", "text": "那不就是做到死，還不能下班？", "scene": 2, "visual_prompt": "The man seen from behind reaches for the exit."},
+    {"speaker": "人資", "text": "沒有喔，死亡之後會轉成約聘。", "scene": 2, "visual_prompt": "HR places another blank contract beside his hand."},
+    {"speaker": "阿哲", "text": "我直接去投胎，總不用回公司吧？", "scene": 2, "visual_prompt": "A close-up of the man's trembling hand on the doorknob."},
+    {"speaker": "人資", "text": "可以，等投胎的時間記得填待命。", "scene": 2, "visual_prompt": "HR calmly delivers the final line, deadpan close-up."}
+  ]
+}
