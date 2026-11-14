@@ -88,11 +88,17 @@ def parse_prices(runway, writer, fx_csv):
     credit = price(r"purchased\s+for\s+\$([\d.]+)\s+per credit", runway)
     input_price = price(r"^\| Input \| \$([\d.]+) \| 1M tokens", writer)
     output_price = price(r"^\| Output \| \$([\d.]+) \| 1M tokens", writer)
-    rows = list(csv.reader(io.StringIO(fx_csv.lstrip("\ufeff"))))
+    # The bank localizes the CSV labels according to the request locale.
+    rows = [[cell.strip() for cell in row] for row in csv.reader(io.StringIO(fx_csv.lstrip("\ufeff"))) if row]
     usd = next((row for row in rows if row and row[0] == "USD"), None)
-    if not usd or len(usd) < 14 or usd[11] != "本行賣出" or rows[0][13] != "即期":
+    if (not usd or len(usd) < 14 or len(rows[0]) < 14 or
+        rows[0][0] not in ("幣別", "Currency") or
+        usd[11] not in ("本行賣出", "Selling") or rows[0][13] not in ("即期", "Spot")):
         raise FilmError("Cannot verify Bank of Taiwan USD selling rate")
-    rate = positive(usd[13], "exchange rate", 1)
+    try:
+        rate = positive(usd[13], "exchange rate", 1)
+    except (ValueError, TypeError):
+        raise FilmError("Cannot verify Bank of Taiwan USD selling rate") from None
     if rate > 100:
         raise FilmError("Unexpected USD/TWD rate")
     return {"video_credits_per_second": video, "image_credits": image,
@@ -106,7 +112,7 @@ def parse_prices(runway, writer, fx_csv):
 
 def live_prices():
     return parse_prices(fetch(PRICE_URL, raw=True), fetch(WRITER_PRICE_URL, raw=True),
-                        fetch(FX_URL, raw=True))
+                        fetch(FX_URL, headers={"Accept-Language": "zh-TW,zh;q=0.9"}, raw=True))
 
 
 def budget(prices, limit=50, overhead=1):
