@@ -40,6 +40,10 @@ def doctor(folder, network=False):
             problems.append(str(error))
     report["ready_for_paid_production"] = network and not problems
     json_write(folder / "setup-report.json", report)
+    workflow_output = os.getenv("GITHUB_OUTPUT")
+    if workflow_output:
+        with open(workflow_output, "a", encoding="utf-8") as output:
+            output.write("ready=" + str(report["ready_for_paid_production"]).lower() + "\n")
     print(json.dumps(report, ensure_ascii=False, indent=2))
     summary = os.getenv("GITHUB_STEP_SUMMARY")
     if summary:
