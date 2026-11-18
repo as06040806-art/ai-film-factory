@@ -30,6 +30,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      production_ready: ${{ steps.preflight.outputs.ready }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,6 +48,7 @@ jobs:
       - name: Render a complete 60-second technical test
         run: python main.py demo --output output/technical-test
       - name: Check production configuration without paid calls
+        id: preflight
         if: github.event_name != 'pull_request'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -65,7 +68,7 @@ jobs:
           retention-days: 7
 
   produce:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'produce'))
+    if: needs.validate.outputs.production_ready == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'produce'))
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 90

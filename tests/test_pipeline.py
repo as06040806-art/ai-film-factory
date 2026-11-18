@@ -1,11 +1,14 @@
 import asyncio
 import copy
+import contextlib
 import hashlib
+import io
 import json
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from main import doctor
 
 from filmfactory.core import FilmError, StateStore, budget, parse_prices, validate_story
 from filmfactory.media import stamp, subtitles, synthesize, verify_native
@@ -41,6 +44,21 @@ class BudgetTests(unittest.TestCase):
         with self.assertRaises(FilmError):
             budget(parse_prices(RATES, WRITER, FX.replace("32.88", "45.00")))
 
+    def test_english_bank_csv_uses_spot_selling_rate(self):
+        english = (FX.replace("幣別", "Currency").replace("匯率", "Rate")
+                   .replace("現金", "Cash").replace("即期", "Spot")
+                   .replace("本行買入", "Buying").replace("本行賣出", "Selling"))
+        for source in (FX, english, "\ufeff" + english + "\n\n"):
+            self.assertEqual(parse_prices(RATES, WRITER, source)["bot_usd_twd"], 32.88)
+
+    def test_missing_or_mislabelled_bank_rate_blocks(self):
+        invalid = ("", "Currency\nUSD", FX.replace("本行賣出", "Buying"),
+                   FX.replace("即期", "Cash"), FX.replace("32.88", "unavailable"),
+                   FX.replace("32.88", "nan"))
+        for source in invalid:
+            with self.subTest(source=source), self.assertRaises(FilmError):
+                parse_prices(RATES, WRITER, source)
+
     def test_nonfinite_or_negative_budget_rejected(self):
         prices = parse_prices(RATES, WRITER, FX)
         for limit in (float("nan"), float("inf"), -1, 51):
@@ -48,6 +66,42 @@ class BudgetTests(unittest.TestCase):
                 budget(prices, limit)
         with self.assertRaises(FilmError):
             budget(prices, overhead=-3)
+
+
+class PreflightTests(unittest.TestCase):
+    def run_doctor(self, credentials, price_error=None):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            env = {**credentials, "GITHUB_OUTPUT": str(path / "job-output")}
+            with patch.dict("os.environ", env, clear=True), patch("main.ensure_tools"), \
+                 patch("main.importlib.util.find_spec", return_value=object()), \
+                 patch("main.live_prices", return_value=parse_prices(RATES, WRITER, FX), side_effect=price_error), \
+                 patch("main.fetch", side_effect=[{"creditBalance": 1000}, {}]) as request, \
+                 contextlib.redirect_stdout(io.StringIO()):
+                report = doctor(path, network=True)
+            for call in request.call_args_list:
+                self.assertEqual(call.kwargs.get("method", "GET"), "GET")
+            return report, (path / "job-output").read_text(), request.call_count
+
+    def test_missing_credentials_marks_production_not_ready(self):
+        report, output, count = self.run_doctor({})
+        self.assertFalse(report["ready_for_paid_production"])
+        self.assertEqual(output, "ready=false\n")
+        self.assertEqual(count, 0)
+        self.assertEqual(len(report["problems"]), 2)
+
+    def test_ready_only_after_free_provider_checks(self):
+        report, output, count = self.run_doctor({"OPENAI_API_KEY": "test", "RUNWAYML_API_SECRET": "test"})
+        self.assertTrue(report["ready_for_paid_production"])
+        self.assertEqual(output, "ready=true\n")
+        self.assertEqual(count, 2)
+
+    def test_price_failure_does_not_enable_production(self):
+        report, output, count = self.run_doctor({"OPENAI_API_KEY": "test", "RUNWAYML_API_SECRET": "test"},
+                                               FilmError("price unavailable"))
+        self.assertFalse(report["ready_for_paid_production"])
+        self.assertEqual(output, "ready=false\n")
+        self.assertEqual(count, 0)
 
 
 class StoryTests(unittest.TestCase):
